@@ -1,0 +1,96 @@
+#include<Servo.h>
+/*********** self balancing beam
+ *  Purpose
+ *    The mC(Arduino) send's control signals to a servo motor to
+ *    balance a beam when a disturbance(ball) is thrown into it.
+ *  Hardware
+ *    One lead of the LDR connect's to the 5V rail, the other connect's to
+ *    an 1K ohm resistor and that connect's to the GND rail. And where the
+ *    LDR and the 1K ohm resistor connect, a jumper wire connect's to an
+ *    analog pin on the mC. The servo motor orange cable connect's
+ *    to a PWM pin on the mC, the brown connect's to the GND rail and the
+ *    red cable connect's to the 5V rail.
+ *  Software
+ *    Uses the Arduino Servo library
+ *  Reference
+ *    V1.5 K.Spyrou, May 2018
+ *  
+ */
+
+const int LD_1 = 0;
+const int LD_2 = 1;
+const int LD_3 = 2;
+const int LD_4 = 3;
+
+int LD1Reading;
+int LD2Reading;
+int LD3Reading;
+int LD4Reading;
+
+int servoAngle;
+
+Servo serv;
+
+void setup() {
+  // put your setup code here, to run once:
+  servoAngle = 30; //Initialize the angle of the servo motor at 30 degrees
+  serv.attach(9);
+  serv.write(servoAngle);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  servoAngle = readPos(servoAngle);
+  Serial.println(servoAngle);
+  serv.write(servoAngle);
+  
+}
+
+/*********** function readPos
+ *  Purpose
+ *    Calculates the distance of the ball from the end of
+ *    the beam that holds the transducer.
+ *  Arguments
+ *    None
+ *  Hardware
+ *    Uses LDR to get an approximation of the ball's position.
+ *  Software
+ *    Uses the Arduino standard library call analogRead
+ *  Reference
+ *    v1.5, K. Spyrou, May 2018.
+ * 
+ ************/
+
+int readPos(int prevAngle){
+  int res = prevAngle;
+  LD1Reading = analogRead(LD_1);
+  LD2Reading = analogRead(LD_2);
+  LD3Reading = analogRead(LD_3);
+  LD4Reading = analogRead(LD_4);
+  Serial.print(LD1Reading);
+  Serial.print(" ");
+  Serial.print(LD2Reading);
+  Serial.print(" ");
+  Serial.print(LD3Reading);
+  Serial.print(" ");
+  Serial.print(LD4Reading);
+  Serial.println();
+  bool ld1Cond = LD1Reading < 100; //If the LDR is dark enough, then the servo angle changes, if not, the servo angle remains the same.
+  bool ld2Cond = LD2Reading < 100;
+  bool ld3Cond = LD3Reading < 100;
+  bool ld4Cond = LD4Reading < 100;
+  if(ld1Cond){
+    res =0;
+  }
+  else if(ld2Cond){
+    res = 20;
+  }
+  else if(ld3Cond){
+    res = 70;
+  }
+  else if(ld4Cond){
+    res = 90;
+  }
+  return res;
+}
